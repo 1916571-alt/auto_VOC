@@ -182,11 +182,35 @@ class VOCAnalyzer:
         """Generates a markdown table row for each analyzed category."""
         rows = []
         for stat in self.analysis_stats:
-            # Predict log filename based on timestamp logic might be tricky if not exact, 
-            # but we can link to the folder or try to construct a name.
-            # Ideally _log_trace should return the filename, but for now we link to the folder.
             rows.append(f"| {stat['Category']} | {stat['Status']} | {stat['Timestamp']} | [Logs](../../logs/{self.project_name}) |")
         return "\n".join(rows) if rows else "| No data | - | - | - |"
+
+    def _generate_verification_trail(self):
+        """Generates collapsible verification sections."""
+        trail = []
+        for stat in self.analysis_stats:
+            trail.append(f"""
+<details>
+<summary><strong>🔍 Verify: {stat['Category']}</strong> (Click to Expand)</summary>
+
+#### 1. Input Data Snippet
+```text
+{stat.get('InputSnippet', 'N/A')}
+```
+
+#### 2. Actual Prompt Used
+```text
+{stat.get('PromptSnippet', 'N/A')}
+```
+
+#### 3. Raw AI Response
+```markdown
+{stat.get('ResultUtils', 'N/A')}
+```
+</details>
+<hr>
+""")
+        return "\n".join(trail)
 
     def generate_log_report(self):
         """Generates a summary log report."""
@@ -217,6 +241,11 @@ class VOCAnalyzer:
 | Category | Status | Timestamp | Log Link |
 | :--- | :--- | :--- | :--- |
 {self._generate_stats_table()}
+
+## 🔍 Verification Trail
+> ** Transparency Check**: Verify the exact input, prompt, and output for each analysis below.
+
+{self._generate_verification_trail()}
 """
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(content)
@@ -235,19 +264,27 @@ class VOCAnalyzer:
             
             # Create a summary (first 10 lines of report)
             summary_lines = report_content.split('\n')[:15]
-            summary = "\n".join(summary_lines) + "\n\n...(Click link for full report)..."
+            summary = "\n".join(summary_lines)
             
-            # Construct the injection block
+            # Construct the injection block (Prettier Format)
             injection = f"""<!-- LATEST_ANALYSIS_START -->
-### 🚀 Latest Analysis Result ({datetime.datetime.now().strftime("%Y-%m-%d %H:%M")})
-**Project:** `{self.project_name}`
-**Model:** `{self.selected_model}`
+---
+### 🚀 Latest VOC Analysis
+> **Update**: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} | **Project**: `{self.project_name}` | **Model**: `{self.selected_model}`
 
-**Summary Preview:**
+**Methodology**:
+- **RAG Context**: {len(self.rag_context)} chars loaded.
+- **Analysis Count**: {self.analyzed_count} categories processed.
+
+**Quick Preview**:
 ```markdown
 {summary}
+...
 ```
-👉 **[View Full Report]({report_path})**
+
+👉 **[📄 Click Here to View Full Report]({report_path})** 
+*(Includes detailed verification trail & logs)*
+---
 <!-- LATEST_ANALYSIS_END -->"""
 
             with open(readme_path, 'r', encoding='utf-8') as f:
@@ -329,15 +366,19 @@ class VOCAnalyzer:
         self.analyzed_count += 1
         
         # Record Stats
+        # Record Stats & Verification Data
         self.analysis_stats.append({
             "Category": category_name,
             "Status": "Success" if result and "Error" not in result[:20] else "Failed",
-            "Timestamp": datetime.datetime.now().strftime("%H:%M:%S")
+            "Timestamp": datetime.datetime.now().strftime("%H:%M:%S"),
+            "InputSnippet": combined_text[:200] + "..." if len(combined_text) > 200 else combined_text,
+            "PromptSnippet": formatted_prompt,
+            "ResultUtils": result
         })
         
         self._log_trace(category_name, combined_text, formatted_prompt, result)
         
-        self._log_trace(category_name, combined_text, formatted_prompt, result)
+
         
         return result
 
@@ -378,7 +419,10 @@ class VOCAnalyzer:
                     self.analysis_stats.append({
                         "Category": team,
                         "Status": "Success (Mock)",
-                        "Timestamp": datetime.datetime.now().strftime("%H:%M:%S")
+                        "Timestamp": datetime.datetime.now().strftime("%H:%M:%S"),
+                        "InputSnippet": "(Mock Data) Review 1...",
+                        "PromptSnippet": "(Mock Prompt) ...",
+                        "ResultUtils": section
                     })
                 else:
                     section = self.analyze_group(team, team_reviews)
