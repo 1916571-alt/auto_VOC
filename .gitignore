@@ -1,6 +1,9 @@
 .env
-data/logs/
-data/processed/
+# Ignore contents of these folders but keep the folder itself
+data/logs/*
+!data/logs/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
 __pycache__/
 *.pyc
 .ipynb_checkpoints

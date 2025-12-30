@@ -27,10 +27,20 @@ class VOCAnalyzer:
         self.success_count = 0
         self.fail_count = 0
         self.selected_model = "unknown"
+        self.analysis_stats = []  # Store execution stats per category
         
         # Security: Robust Env Loading & Masked Logging
         api_key = os.environ.get("GOOGLE_API_KEY")
         self.mock_mode = False
+
+    def initialize(self, use_mock=False):
+        self.mock_mode = use_mock
+        api_key = os.environ.get("GOOGLE_API_KEY")
+
+        if self.mock_mode:
+            print(">> [INFO] Running in MOCK MODE. No API Key required.")
+            self.selected_model = "mock-model"
+            return
 
         if not api_key:
             print(">> [CRITICAL] GOOGLE_API_KEY not found in environment variables.")
@@ -166,8 +176,17 @@ class VOCAnalyzer:
         filepath = f"data/processed/{self.project_name}/{filename}"
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
-        print(f"Report saved to: {filepath}")
         return filepath
+
+    def _generate_stats_table(self):
+        """Generates a markdown table row for each analyzed category."""
+        rows = []
+        for stat in self.analysis_stats:
+            # Predict log filename based on timestamp logic might be tricky if not exact, 
+            # but we can link to the folder or try to construct a name.
+            # Ideally _log_trace should return the filename, but for now we link to the folder.
+            rows.append(f"| {stat['Category']} | {stat['Status']} | {stat['Timestamp']} | [Logs](../../logs/{self.project_name}) |")
+        return "\n".join(rows) if rows else "| No data | - | - | - |"
 
     def generate_log_report(self):
         """Generates a summary log report."""
@@ -193,6 +212,11 @@ class VOCAnalyzer:
 ## 📂 Artifacts
 - **Full Report:** [View Report](./final_report.md)
 - **Detailed Logs:** `data/logs/{self.project_name}/`
+
+## 📝 Detailed Execution Log
+| Category | Status | Timestamp | Log Link |
+| :--- | :--- | :--- | :--- |
+{self._generate_stats_table()}
 """
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(content)
@@ -303,9 +327,29 @@ class VOCAnalyzer:
             self.fail_count += 1
         
         self.analyzed_count += 1
+        
+        # Record Stats
+        self.analysis_stats.append({
+            "Category": category_name,
+            "Status": "Success" if result and "Error" not in result[:20] else "Failed",
+            "Timestamp": datetime.datetime.now().strftime("%H:%M:%S")
+        })
+        
+        self._log_trace(category_name, combined_text, formatted_prompt, result)
+        
         self._log_trace(category_name, combined_text, formatted_prompt, result)
         
         return result
+
+    def _mock_analyze_group(self, category_name):
+        """Returns a dummy analysis result for testing."""
+        return f"""### N [{category_name}] [Main Issue] Mock Analysis Result
+- 이슈 요약 : This is a mock summary for testing.
+- 감정 : Mock Emotion
+- | 불만 유형 | 비율 | 대표 예시 |
+  | :--- | :--- | :--- |
+  | Mock Type A | 50% | "Mock Example 1" |
+- 개선 방향 : Mock Action Item"""
 
     def generate_full_report(self, csv_path):
         if not os.path.exists(csv_path):
@@ -326,7 +370,18 @@ class VOCAnalyzer:
             
             if not team_reviews.empty:
                 print(f"Analyzing category: {team} ({len(team_reviews)} reviews)...")
-                section = self.analyze_group(team, team_reviews)
+            if not team_reviews.empty:
+                print(f"Analyzing category: {team} ({len(team_reviews)} reviews)...")
+                if self.mock_mode:
+                    section = self._mock_analyze_group(team)
+                    # Manually add stats for mock
+                    self.analysis_stats.append({
+                        "Category": team,
+                        "Status": "Success (Mock)",
+                        "Timestamp": datetime.datetime.now().strftime("%H:%M:%S")
+                    })
+                else:
+                    section = self.analyze_group(team, team_reviews)
                 report_sections.append(section)
                 
         full_report = "\n\n".join(report_sections)
@@ -345,10 +400,12 @@ class VOCAnalyzer:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="VOC AI Analyzer")
     parser.add_argument("--project", type=str, default="default_analysis", help="Project name for output subdirectory")
+    parser.add_argument("--mock", action="store_true", help="Run in mock mode without API calls")
     
     args = parser.parse_args()
     
     analyzer = VOCAnalyzer(project_name=args.project)
+    analyzer.initialize(use_mock=args.mock)
     
     if os.path.exists("data/raw/mock_reviews.csv"):
         analyzer.generate_full_report("data/raw/mock_reviews.csv")
