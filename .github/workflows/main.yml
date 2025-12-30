@@ -37,13 +37,13 @@ jobs:
       with:
         name: analysis-results
         path: |
-          data/processed/
-          data/logs/
+          results/
+          data/logs/ # Keep temporarily if needed, but we are moving to results/logs
 
     - name: Commit and Push Results
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add -f data/processed/ data/logs/ README.md README.md
+        git add -f results/ README.md
         git commit -m "Auto: Update VOC Analysis Reports [skip ci]" || echo "No changes to commit"
         git push

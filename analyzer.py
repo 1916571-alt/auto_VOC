@@ -64,7 +64,7 @@ class VOCAnalyzer:
                 
                 # Log available models
                 try:
-                    log_path = f"data/logs/{self.project_name}/available_models.log"
+                    log_path = f"results/{self.project_name}/logs/available_models.log"
                     with open(log_path, "w", encoding="utf-8") as f:
                         f.write("\n".join(available))
                     print(f">> [INFO] Available models logged to {log_path}: {available}")
@@ -109,8 +109,8 @@ class VOCAnalyzer:
         dirs = [
             "data/raw", 
             "data/docs",
-            f"data/processed/{self.project_name}", 
-            f"data/logs/{self.project_name}"
+            f"results/{self.project_name}", 
+            f"results/{self.project_name}/logs"
         ]
         for d in dirs:
             os.makedirs(d, exist_ok=True)
@@ -140,7 +140,7 @@ class VOCAnalyzer:
     def _log_trace(self, category, input_data, prompt_text, response_text):
         """Logs the analysis trace to detailed files."""
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        base_path = f"data/logs/{self.project_name}"
+        base_path = f"results/{self.project_name}/logs"
         
         # 1. Main Trace Log (Summary)
         log_filename = f"{base_path}/trace_{timestamp}_{category}.log"
@@ -172,8 +172,8 @@ class VOCAnalyzer:
             print(f"Failed to write response json: {e}")
 
     def _save_result(self, content, filename="final_report.md"):
-        """Saves the final report to data/processed."""
-        filepath = f"data/processed/{self.project_name}/{filename}"
+        """Saves the final report to results/project_name."""
+        filepath = f"results/{self.project_name}/{filename}"
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
         return filepath
@@ -182,7 +182,7 @@ class VOCAnalyzer:
         """Generates a markdown table row for each analyzed category."""
         rows = []
         for stat in self.analysis_stats:
-            rows.append(f"| {stat['Category']} | {stat['Status']} | {stat['Timestamp']} | [Logs](../../logs/{self.project_name}) |")
+            rows.append(f"| {stat['Category']} | {stat['Status']} | {stat['Timestamp']} | [Logs](logs/) |")
         return "\n".join(rows) if rows else "| No data | - | - | - |"
 
     def _generate_verification_trail(self):
