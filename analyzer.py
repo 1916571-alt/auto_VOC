@@ -5,6 +5,7 @@ import datetime
 import time
 import json
 import argparse
+import glob
 from dotenv import load_dotenv
 import google.generativeai as genai
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -21,24 +22,26 @@ class VOCAnalyzer:
         self._ensure_directories()
         self.config = self._load_config(config_path)
         self.rag_context = self._load_rag_documents()
+        self.start_time = time.time()
+        self.analyzed_count = 0
+        self.success_count = 0
+        self.fail_count = 0
+        self.selected_model = "unknown"
         
         # Security: Robust Env Loading & Masked Logging
-        # Explicitly check os.environ to ensure system env vars (like in GitHub Actions) are caught
         api_key = os.environ.get("GOOGLE_API_KEY")
         self.mock_mode = False
 
         if not api_key:
-            # Strict Mode Enforcement
             print(">> [CRITICAL] GOOGLE_API_KEY not found in environment variables.")
             print(">> Please ensure .env file exists and contains GOOGLE_API_KEY.")
             raise ValueError("API Key missing. Aborting Real-World Analysis.")
         else:
-            # Masked Logging
             masked_key = f"{api_key[:3]}***{api_key[-3:]}" if len(api_key) > 6 else "***"
             print(f">> [INFO] API Key Loaded: {masked_key}")
             
             # --- Auto-Model Detection Logic ---
-            selected_model = "gemini-1.5-flash" # Default fallback
+            self.selected_model = "gemini-1.5-flash" # Default fallback
             try:
                 genai.configure(api_key=api_key)
                 available = []
@@ -46,7 +49,6 @@ class VOCAnalyzer:
                 
                 for m in genai.list_models():
                     if 'generateContent' in m.supported_generation_methods:
-                        # Strip 'models/' prefix for cleaner comparison/usage if needed by LangChain
                         model_name = m.name.replace("models/", "")
                         available.append(model_name)
                 
@@ -59,27 +61,26 @@ class VOCAnalyzer:
                 except Exception as e:
                     print(f">> [WARNING] Failed to log available models: {e}")
 
-                # Priority: 1.5-flash -> 1.5-pro -> 1.0-pro (or others found)
                 if "gemini-1.5-flash" in available:
-                    selected_model = "gemini-1.5-flash"
+                    self.selected_model = "gemini-1.5-flash"
                 elif "gemini-1.5-pro" in available:
-                    selected_model = "gemini-1.5-pro"
+                    self.selected_model = "gemini-1.5-pro"
                 elif "gemini-1.0-pro" in available:
-                    selected_model = "gemini-1.0-pro"
+                    self.selected_model = "gemini-1.0-pro"
                 elif "gemini-pro" in available:
-                    selected_model = "gemini-pro"
+                    self.selected_model = "gemini-pro"
                 else:
                     if available:
-                        selected_model = available[0]
+                        self.selected_model = available[0]
                 
-                print(f">> [INFO] Auto-Selected Model: {selected_model}")
+                print(f">> [INFO] Auto-Selected Model: {self.selected_model}")
 
             except Exception as e:
-                print(f">> [WARNING] Model list failed ({e}). Defaulting to {selected_model}")
+                print(f">> [WARNING] Model list failed ({e}). Defaulting to {self.selected_model}")
 
             try:
                 self.llm = ChatGoogleGenerativeAI(
-                    model=selected_model,
+                    model=self.selected_model,
                     temperature=0.0,
                     google_api_key=api_key
                 )
@@ -89,7 +90,6 @@ class VOCAnalyzer:
 
     def _ensure_directories(self):
         """Creates necessary directories if they don't exist."""
-        # Clean project name to avoid path issues
         safe_project_name = "".join([c for c in self.project_name if c.isalnum() or c in ('-', '_')]).strip()
         if not safe_project_name:
             safe_project_name = "default_analysis"
@@ -167,43 +167,112 @@ class VOCAnalyzer:
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
         print(f"Report saved to: {filepath}")
+        return filepath
+
+    def generate_log_report(self):
+        """Generates a summary log report."""
+        end_time = time.time()
+        duration = end_time - self.start_time
+        
+        report_path = f"data/processed/{self.project_name}/log_report.md"
+        
+        content = f"""# 📊 Auto VOC Analysis Log Report
+**Project:** {self.project_name}
+**Date:** {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+**Duration:** {duration:.2f} seconds
+
+## 🛠 System Stats
+- **Model Used:** `{self.selected_model}`
+- **RAG Context Size:** {len(self.rag_context)} chars
+
+## 📈 Execution Summary
+- **Total Categories Analyzed:** {self.analyzed_count}
+- **Success:** {self.success_count}
+- **Failed:** {self.fail_count}
+
+## 📂 Artifacts
+- **Full Report:** [View Report](./final_report.md)
+- **Detailed Logs:** `data/logs/{self.project_name}/`
+"""
+        with open(report_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print(f">> [INFO] Log report generated: {report_path}")
+
+    def update_readme(self, report_path):
+        """Updates README.md to link to the latest analysis."""
+        readme_path = "README.md"
+        if not os.path.exists(readme_path):
+            print(">> [WARNING] README.md not found. Skipping sync.")
+            return
+
+        try:
+            with open(report_path, 'r', encoding='utf-8') as f:
+                report_content = f.read()
+            
+            # Create a summary (first 10 lines of report)
+            summary_lines = report_content.split('\n')[:15]
+            summary = "\n".join(summary_lines) + "\n\n...(Click link for full report)..."
+            
+            # Construct the injection block
+            injection = f"""<!-- LATEST_ANALYSIS_START -->
+### 🚀 Latest Analysis Result ({datetime.datetime.now().strftime("%Y-%m-%d %H:%M")})
+**Project:** `{self.project_name}`
+**Model:** `{self.selected_model}`
+
+**Summary Preview:**
+```markdown
+{summary}
+```
+👉 **[View Full Report]({report_path})**
+<!-- LATEST_ANALYSIS_END -->"""
+
+            with open(readme_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Replace logic
+            start_marker = "<!-- LATEST_ANALYSIS_START -->"
+            end_marker = "<!-- LATEST_ANALYSIS_END -->"
+            
+            if start_marker in content and end_marker in content:
+                # Replace existing block
+                new_content = content.split(start_marker)[0] + injection + content.split(end_marker)[1]
+            else:
+                # Append to end if markers don't exist
+                new_content = content + "\n\n" + injection
+            
+            with open(readme_path, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+                
+            print(f">> [INFO] README.md updated with latest analysis.")
+            
+        except Exception as e:
+            print(f">> [ERROR] Failed to update README: {e}")
 
     def analyze_group(self, category_name, reviews_df):
-        """
-        Analyzes a group of reviews, logs the process, and returns the markdown format.
-        """
         count = len(reviews_df)
         combined_text = "\n".join(reviews_df['review_text'].head(20).tolist())
-        
-        # RAG Context Injection
         rag_section = f"\n[Guideline & Context from Query]\n{self.rag_context}\n" if self.rag_context else ""
         
         prompt_template_str = """
         You are a VOC Analyst. STRICT adherence to output format and tone is required.
-        
         [RAG Context]
         {rag_section}
-        
         [Instructions]
         1. Classify the reviews strictly based on the context above.
-        2. Tone: summarize the issue in 'Eum-seum-che' (Korean ending with noun or ~m/um). 
-           Example: "결제 오류가 발생함" (O), "결제 오류가 발생했습니다" (X).
+        2. Tone: summarize the issue in 'Eum-seum-che'.
         3. Do not add any introductory or concluding remarks. Only the Markdown.
-        
         [Input Data]
         Category: {category_name}
         Review Count: {count}
         Reviews:
         {reviews}
-        
         [Strict Output Format (Markdown)]
         ### N [{category_name}] [Main Issue] Ratio%, {count} cases
         - 이슈 요약 : (Summarize in 'Eum-seum-che', max 30 chars)
-        - 감정 : (1-2 keywords like 불만, 분노, 아쉬움)
+        - 감정 : (1-2 keywords)
         - | 불만 유형 | 비율 | 대표 예시 |
           | :--- | :--- | :--- |
           | (Type A) | (Approx %) | "(Example)" |
-          | (Type B) | (Approx %) | "(Example)" |
         - 개선 방향 : (Actionable suggestion)
         """
         
@@ -212,7 +281,6 @@ class VOCAnalyzer:
             input_variables=["category_name", "reviews", "count", "rag_section"]
         )
         
-        # Traceability: Capture the formatted prompt
         formatted_prompt = prompt.format(
             category_name=category_name, 
             reviews=combined_text, 
@@ -222,19 +290,19 @@ class VOCAnalyzer:
         
         result = ""
         try:
-            # Modern LCEL Pattern: prompt | llm | output_parser
             chain = prompt | self.llm | StrOutputParser()
-            
             result = chain.invoke({
                 "category_name": category_name, 
                 "reviews": combined_text, 
                 "count": count, 
                 "rag_section": rag_section
             })
+            self.success_count += 1
         except Exception as e:
             result = f"Error during LLM execution: {e}"
-
-        # Log the full trace
+            self.fail_count += 1
+        
+        self.analyzed_count += 1
         self._log_trace(category_name, combined_text, formatted_prompt, result)
         
         return result
@@ -265,7 +333,12 @@ class VOCAnalyzer:
         
         # Save Result
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        self._save_result(full_report, f"report_{timestamp}.md")
+        report_filename = f"report_{timestamp}.md"
+        saved_path = self._save_result(full_report, report_filename)
+        
+        # Generate Log Report & Sync README
+        self.generate_log_report()
+        self.update_readme(saved_path)
         
         return full_report
 
