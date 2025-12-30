@@ -89,11 +89,15 @@ auto_VOC/
 
 
 <!-- LATEST_ANALYSIS_START -->
-### 🚀 Latest Analysis Result (2025-12-30 16:24)
-**Project:** `test_cleanup`
-**Model:** `mock-model`
+---
+### 🚀 Latest VOC Analysis
+> **Update**: 2025-12-30 16:40 | **Project**: `v1_release` | **Model**: `mock-model`
 
-**Summary Preview:**
+**Methodology**:
+- **RAG Context**: 438 chars loaded.
+- **Analysis Count**: 0 categories processed.
+
+**Quick Preview**:
 ```markdown
 ### N [billing_team] [Main Issue] Mock Analysis Result
 - 이슈 요약 : This is a mock summary for testing.
@@ -110,8 +114,10 @@ auto_VOC/
   | :--- | :--- | :--- |
   | Mock Type A | 50% | "Mock Example 1" |
 - 개선 방향 : Mock Action Item
-
-...(Click link for full report)...
+...
 ```
-👉 **[View Full Report](data/processed/test_cleanup/report_20251230_162455.md)**
+
+👉 **[📄 Click Here to View Full Report](data/processed/v1_release/report_20251230_164014.md)** 
+*(Includes detailed verification trail & logs)*
+---
 <!-- LATEST_ANALYSIS_END -->
