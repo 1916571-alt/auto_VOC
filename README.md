@@ -91,11 +91,11 @@ auto_VOC/
 <!-- LATEST_ANALYSIS_START -->
 ---
 ### 🚀 Latest VOC Analysis
-> **Update**: 2025-12-30 16:40 | **Project**: `v1_release` | **Model**: `mock-model`
+> **Update**: 2025-12-30 17:01 | **Project**: `transparent_audit` | **Model**: `mock-model`
 
 **Methodology**:
 - **RAG Context**: 438 chars loaded.
-- **Analysis Count**: 0 categories processed.
+- **Analysis Count**: 3 categories processed.
 
 **Quick Preview**:
 ```markdown
@@ -107,17 +107,18 @@ auto_VOC/
   | Mock Type A | 50% | "Mock Example 1" |
 - 개선 방향 : Mock Action Item
 
-### N [system_team] [Main Issue] Mock Analysis Result
-- 이슈 요약 : This is a mock summary for testing.
-- 감정 : Mock Emotion
-- | 불만 유형 | 비율 | 대표 예시 |
-  | :--- | :--- | :--- |
-  | Mock Type A | 50% | "Mock Example 1" |
-- 개선 방향 : Mock Action Item
+#### 🔍 Analysis Audit (검증 데이터)
+| 단계 | 내용 |
+| :--- | :--- |
+| **Raw Data** | - Mock Review 1<br>- Mock Review 2 |
+| **RAG Context** | Mock Context... |
+| **Full Prompt** | <details><summary>View Prompt</summary>... |
+| **Raw Response** | <details><summary>View Response</summary>... |
+<hr>
 ...
 ```
 
-👉 **[📄 Click Here to View Full Report](data/processed/v1_release/report_20251230_164014.md)** 
+👉 **[📄 Click Here to View Full Report](data/processed/transparent_audit/report_20251230_170102.md)** 
 *(Includes detailed verification trail & logs)*
 ---
 <!-- LATEST_ANALYSIS_END -->
