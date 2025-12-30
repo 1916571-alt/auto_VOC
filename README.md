@@ -91,7 +91,7 @@ auto_VOC/
 <!-- LATEST_ANALYSIS_START -->
 ---
 ### 🚀 Latest VOC Analysis
-> **Update**: 2025-12-30 17:01 | **Project**: `transparent_audit` | **Model**: `mock-model`
+> **Update**: 2025-12-30 08:24 | **Project**: `Analysis_20251230_082333` | **Model**: `gemini-2.5-flash`
 
 **Methodology**:
 - **RAG Context**: 438 chars loaded.
@@ -99,26 +99,25 @@ auto_VOC/
 
 **Quick Preview**:
 ```markdown
-### N [billing_team] [Main Issue] Mock Analysis Result
-- 이슈 요약 : This is a mock summary for testing.
-- 감정 : Mock Emotion
+
+### 1 [billing_team] 결제 오류 및 실패 100%, 8 cases
+- 이슈 요약 : 결제 오류 및 충전/취소 불가 문제 발생
+- 감정 : 불편, 불만
 - | 불만 유형 | 비율 | 대표 예시 |
   | :--- | :--- | :--- |
-  | Mock Type A | 50% | "Mock Example 1" |
-- 개선 방향 : Mock Action Item
+  | payment_error | 100% | "결제 오류 ㅠㅠ 해결 좀 해주세요." |
+- 개선 방향 : 결제 시스템 안정성 강화 및 오류 원인 분석 통한 개선 필요
+
 
 #### 🔍 Analysis Audit (검증 데이터)
 | 단계 | 내용 |
 | :--- | :--- |
-| **Raw Data** | - Mock Review 1<br>- Mock Review 2 |
-| **RAG Context** | Mock Context... |
-| **Full Prompt** | <details><summary>View Prompt</summary>... |
-| **Raw Response** | <details><summary>View Response</summary>... |
-<hr>
+| **Raw Data** | - [payment_error] 페이 충전 실패 ! 해결 좀 해주세요.
+- [payment_error] 결제 오류 ㅠㅠ 해결 좀 해주세요.
 ...
 ```
 
-👉 **[📄 Click Here to View Full Report](data/processed/transparent_audit/report_20251230_170102.md)** 
+👉 **[📄 Click Here to View Full Report](data/processed/Analysis_20251230_082333/report_20251230_082418.md)** 
 *(Includes detailed verification trail & logs)*
 ---
 <!-- LATEST_ANALYSIS_END -->

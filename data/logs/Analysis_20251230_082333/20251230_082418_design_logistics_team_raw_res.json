@@ -1,0 +1,4 @@
+{
+  "category": "design_logistics_team",
+  "response": "### 1 [design_logistics_team] Design_Team 47%, 19 cases\n- 이슈 요약 : 디자인 불만 및 앱 화면 멈춤\n- 감정 : 불만, 불편\n- | 불만 유형 | 비율 | 대표 예시 |\n  | :--- | :--- | :--- |\n  | Design_Team | 47% | \"디자인이 별로에요\" |\n  | Tech_Team (Error Type: 화면 멈춤) | 37% | \"[app_crash] 화면 멈춤 해결 좀 해주세요.\" |\n  | Logistics | 16% | \"배송 조회 안됨\" |\n- 개선 방향 : 디자인 및 앱 안정성 개선과 배송 정보 투명성 확보"
+}
