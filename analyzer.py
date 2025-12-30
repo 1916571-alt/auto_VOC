@@ -7,7 +7,8 @@ import json
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
 
 # Load environment variables
 load_dotenv()
@@ -110,30 +111,6 @@ class VOCAnalyzer:
             f.write(content)
         print(f"Report saved to: {filepath}")
 
-    def _generate_mock_response(self, category_name, count):
-        """Generates a mock response following the strict format."""
-        import random
-        # Mock templates
-        issues = ["결제 모듈 메모리 참조 오류", "앱 실행 시 무한 로딩", "폰트 사이즈가 너무 작음"]
-        feelings = ["분노, 불만", "답답함", "아쉬움"]
-        types = [
-             ("| 강제 종료", "| 80% | \"결제 버튼 누르자마자 튕김\""),
-             ("| 로그인 불가", "| 100% | \"패스워드 입력 후 멈춤\""),
-             ("| 가독성 저하", "| 50% | \"노안이라 안보임\"")
-        ]
-        
-        issue = random.choice(issues)
-        feeling = random.choice(feelings)
-        type_row = random.choice(types)
-        
-        return f"""### 1 [{category_name}] [Mock Issue] 15%, {count}건(+5%)
-- 이슈 요약 : {issue} 발생함.
-- 감정 : {feeling}
-- | 불만 유형 | 비율 | 대표 예시 |
-  | :--- | :--- | :--- |
-  {type_row[0]} {type_row[1]}
-- 개선 방향 : 해당 모듈 긴급 패치 필요."""
-
     def analyze_group(self, category_name, reviews_df):
         """
         Analyzes a group of reviews, logs the process, and returns the markdown format.
@@ -187,20 +164,18 @@ class VOCAnalyzer:
         )
         
         result = ""
-        if self.mock_mode:
-            result = self._generate_mock_response(category_name, count)
-            time.sleep(0.5) # Simulate latency
-        else:
-            try:
-                chain = LLMChain(llm=self.llm, prompt=prompt)
-                result = chain.run(
-                    category_name=category_name, 
-                    reviews=combined_text, 
-                    count=count, 
-                    rag_section=rag_section
-                )
-            except Exception as e:
-                result = f"Error during LLM execution: {e}"
+        try:
+            # Modern LCEL Pattern: prompt | llm | output_parser
+            chain = prompt | self.llm | StrOutputParser()
+            
+            result = chain.invoke({
+                "category_name": category_name, 
+                "reviews": combined_text, 
+                "count": count, 
+                "rag_section": rag_section
+            })
+        except Exception as e:
+            result = f"Error during LLM execution: {e}"
 
         # Log the full trace
         self._log_trace(category_name, combined_text, formatted_prompt, result)
@@ -236,10 +211,10 @@ class VOCAnalyzer:
         self._save_result(full_report, f"report_{timestamp}.md")
         
         return full_report
-
-if __name__ == "__main__":
-    analyzer = VOCAnalyzer()
-    if os.path.exists("data/raw/mock_reviews.csv"):
-        analyzer.generate_full_report("data/raw/mock_reviews.csv")
-    else:
-        print("Mock data not found. Run generate_data.py first.")
+    
+    if __name__ == "__main__":
+        analyzer = VOCAnalyzer()
+        if os.path.exists("data/raw/mock_reviews.csv"):
+            analyzer.generate_full_report("data/raw/mock_reviews.csv")
+        else:
+            print("Mock data not found. Run generate_data.py first.")
