@@ -1,0 +1,8 @@
+[VOC Analysis Guideline]
+1. Output Format: STRICTLY follow the Markdown format defined in the prompt.
+2. Tone: Use 'Eum-seum-che' (ending with noun or ~m/um) for summaries.
+3. Classification:
+   - Payment issues -> Billing_Team
+   - App crash/bugs -> Tech_Team
+   - UI/UX complaints -> Design_Team
+4. Critical Rule: Always identify the specific 'Error Type' if mentioned (e.g., 'Memory Error', 'Payment Gateway Timeout').

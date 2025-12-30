@@ -1,0 +1,37 @@
+name: Auto VOC Analysis
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run VOC Analyzer
+      env:
+        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}  # Maps the GitHub Secret to the env var
+      run: |
+        python analyzer.py
+      
+    - name: Upload Logs & Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: analysis-results
+        path: |
+          data/processed/
+          data/logs/
