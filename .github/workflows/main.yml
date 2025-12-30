@@ -28,7 +28,9 @@ jobs:
       env:
         GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}  # Maps the GitHub Secret to the env var
       run: |
-        python analyzer.py
+        PROJECT_NAME="Analysis_$(date +'%Y%m%d_%H%M%S')"
+        echo "Running analysis for project: $PROJECT_NAME"
+        python analyzer.py --project "$PROJECT_NAME"
       
     - name: Upload Logs & Results (Artifacts)
       uses: actions/upload-artifact@v4

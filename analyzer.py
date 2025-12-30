@@ -4,6 +4,7 @@ import pandas as pd
 import datetime
 import time
 import json
+import argparse
 from dotenv import load_dotenv
 import google.generativeai as genai
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -15,7 +16,8 @@ from langchain_core.runnables import RunnablePassthrough
 load_dotenv()
 
 class VOCAnalyzer:
-    def __init__(self, config_path="config/teams.yaml"):
+    def __init__(self, config_path="config/teams.yaml", project_name="default_analysis"):
+        self.project_name = project_name
         self._ensure_directories()
         self.config = self._load_config(config_path)
         self.rag_context = self._load_rag_documents()
@@ -50,14 +52,14 @@ class VOCAnalyzer:
                 
                 # Log available models
                 try:
-                    with open("data/logs/available_models.log", "w", encoding="utf-8") as f:
+                    log_path = f"data/logs/{self.project_name}/available_models.log"
+                    with open(log_path, "w", encoding="utf-8") as f:
                         f.write("\n".join(available))
-                    print(f">> [INFO] Available models logged to data/logs/available_models.log: {available}")
+                    print(f">> [INFO] Available models logged to {log_path}: {available}")
                 except Exception as e:
                     print(f">> [WARNING] Failed to log available models: {e}")
 
                 # Priority: 1.5-flash -> 1.5-pro -> 1.0-pro (or others found)
-                # We prioritize flash for speed/cost, then pro for quality.
                 if "gemini-1.5-flash" in available:
                     selected_model = "gemini-1.5-flash"
                 elif "gemini-1.5-pro" in available:
@@ -67,8 +69,6 @@ class VOCAnalyzer:
                 elif "gemini-pro" in available:
                     selected_model = "gemini-pro"
                 else:
-                    # If none of the known ones match directly, take the first available message-capable model
-                    # But stick to default if list is empty for some reason to let LangChain try.
                     if available:
                         selected_model = available[0]
                 
@@ -89,9 +89,22 @@ class VOCAnalyzer:
 
     def _ensure_directories(self):
         """Creates necessary directories if they don't exist."""
-        dirs = ["data/raw", "data/processed", "data/logs", "data/docs"]
+        # Clean project name to avoid path issues
+        safe_project_name = "".join([c for c in self.project_name if c.isalnum() or c in ('-', '_')]).strip()
+        if not safe_project_name:
+            safe_project_name = "default_analysis"
+        
+        self.project_name = safe_project_name
+        
+        dirs = [
+            "data/raw", 
+            "data/docs",
+            f"data/processed/{self.project_name}", 
+            f"data/logs/{self.project_name}"
+        ]
         for d in dirs:
             os.makedirs(d, exist_ok=True)
+        print(f">> [INFO] Project directories initialized for: {self.project_name}")
 
     def _load_config(self, path):
         try:
@@ -117,9 +130,10 @@ class VOCAnalyzer:
     def _log_trace(self, category, input_data, prompt_text, response_text):
         """Logs the analysis trace to detailed files."""
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        base_path = f"data/logs/{self.project_name}"
         
         # 1. Main Trace Log (Summary)
-        log_filename = f"data/logs/trace_{timestamp}_{category}.log"
+        log_filename = f"{base_path}/trace_{timestamp}_{category}.log"
         try:
             with open(log_filename, "w", encoding="utf-8") as f:
                 f.write(f"=== [Step 1: Raw Input] ===\n")
@@ -132,7 +146,7 @@ class VOCAnalyzer:
             print(f"Failed to write summary log: {e}")
 
         # 2. Detailed Prompt Log
-        prompt_filename = f"data/logs/{timestamp}_{category}_prompt.txt"
+        prompt_filename = f"{base_path}/{timestamp}_{category}_prompt.txt"
         try:
             with open(prompt_filename, "w", encoding="utf-8") as f:
                 f.write(prompt_text)
@@ -140,7 +154,7 @@ class VOCAnalyzer:
             print(f"Failed to write prompt log: {e}")
 
         # 3. Raw Response JSON
-        res_filename = f"data/logs/{timestamp}_{category}_raw_res.json"
+        res_filename = f"{base_path}/{timestamp}_{category}_raw_res.json"
         try:
             with open(res_filename, "w", encoding="utf-8") as f:
                 json.dump({"category": category, "response": response_text}, f, ensure_ascii=False, indent=2)
@@ -149,7 +163,7 @@ class VOCAnalyzer:
 
     def _save_result(self, content, filename="final_report.md"):
         """Saves the final report to data/processed."""
-        filepath = f"data/processed/{filename}"
+        filepath = f"data/processed/{self.project_name}/{filename}"
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
         print(f"Report saved to: {filepath}")
@@ -232,7 +246,7 @@ class VOCAnalyzer:
         df = pd.read_csv(csv_path)
         report_sections = []
         
-        print(f"Starting Analysis... (Mock Mode: {self.mock_mode})")
+        print(f"Starting Analysis for Project: {self.project_name} ... (Mock Mode: {self.mock_mode})")
         if self.rag_context:
             print(f"RAG Context Loaded: {len(self.rag_context)} chars")
         else:
@@ -256,7 +270,13 @@ class VOCAnalyzer:
         return full_report
 
 if __name__ == "__main__":
-    analyzer = VOCAnalyzer()
+    parser = argparse.ArgumentParser(description="VOC AI Analyzer")
+    parser.add_argument("--project", type=str, default="default_analysis", help="Project name for output subdirectory")
+    
+    args = parser.parse_args()
+    
+    analyzer = VOCAnalyzer(project_name=args.project)
+    
     if os.path.exists("data/raw/mock_reviews.csv"):
         analyzer.generate_full_report("data/raw/mock_reviews.csv")
     else:
