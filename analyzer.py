@@ -213,43 +213,9 @@ class VOCAnalyzer:
         return "\n".join(trail)
 
     def generate_log_report(self):
-        """Generates a summary log report."""
-        end_time = time.time()
-        duration = end_time - self.start_time
-        
-        report_path = f"data/processed/{self.project_name}/log_report.md"
-        
-        content = f"""# 📊 Auto VOC Analysis Log Report
-**Project:** {self.project_name}
-**Date:** {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-**Duration:** {duration:.2f} seconds
+        """(Deprecated) Generates a summary log report."""
+        pass # Now merged into main report
 
-## 🛠 System Stats
-- **Model Used:** `{self.selected_model}`
-- **RAG Context Size:** {len(self.rag_context)} chars
-
-## 📈 Execution Summary
-- **Total Categories Analyzed:** {self.analyzed_count}
-- **Success:** {self.success_count}
-- **Failed:** {self.fail_count}
-
-## 📂 Artifacts
-- **Full Report:** [View Report](./final_report.md)
-- **Detailed Logs:** `data/logs/{self.project_name}/`
-
-## 📝 Detailed Execution Log
-| Category | Status | Timestamp | Log Link |
-| :--- | :--- | :--- | :--- |
-{self._generate_stats_table()}
-
-## 🔍 Verification Trail
-> ** Transparency Check**: Verify the exact input, prompt, and output for each analysis below.
-
-{self._generate_verification_trail()}
-"""
-        with open(report_path, "w", encoding="utf-8") as f:
-            f.write(content)
-        print(f">> [INFO] Log report generated: {report_path}")
 
     def update_readme(self, report_path):
         """Updates README.md to link to the latest analysis."""
@@ -430,16 +396,31 @@ class VOCAnalyzer:
                 
         full_report = "\n\n".join(report_sections)
         
+        # Merge Verification Trail (Unified Report)
+        unified_report = f"""
+{full_report}
+
+---
+# 🔍 Verification Center (Detailed Logs)
+
+## 📝 Execution Stats
+| Category | Status | Timestamp | Log Link |
+| :--- | :--- | :--- | :--- |
+{self._generate_stats_table()}
+
+## 🔍 Verification Trail (Input -> Prompt -> Output)
+{self._generate_verification_trail()}
+"""
+        
         # Save Result
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         report_filename = f"report_{timestamp}.md"
-        saved_path = self._save_result(full_report, report_filename)
+        saved_path = self._save_result(unified_report, report_filename)
         
-        # Generate Log Report & Sync README
-        self.generate_log_report()
+        # Sync README (No separate log report)
         self.update_readme(saved_path)
         
-        return full_report
+        return unified_report
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="VOC AI Analyzer")
