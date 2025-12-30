@@ -89,23 +89,23 @@ auto_VOC/
 
 
 <!-- LATEST_ANALYSIS_START -->
-### 🚀 Latest Analysis Result (2025-12-30 07:45)
-**Project:** `Analysis_20251230_074432`
+### 🚀 Latest Analysis Result (2025-12-30 07:53)
+**Project:** `Analysis_20251230_075241`
 **Model:** `gemini-2.5-flash`
 
 **Summary Preview:**
 ```markdown
-### 1 [billing_team] 결제 오류 및 충전 실패 100%, 8 cases
-- 이슈 요약 : 결제 실패 및 취소 불가 발생
-- 감정 : 불편, 불만
+### 1 [billing_team] 결제/충전 오류 및 취소 불가 100%, 8 cases
+- 이슈 요약 : 결제/충전 실패 및 취소 불가 발생
+- 감정 : 불편함, 불만
 - | 불만 유형 | 비율 | 대표 예시 |
   | :--- | :--- | :--- |
-  | payment_error | 100% | "결제 오류 ㅠㅠ 해결 좀 해주세요." |
-- 개선 방향 : 결제 시스템 안정성 강화 및 오류 개선 방안 마련
+  | payment_error | 100% | "페이 충전 실패 ! 해결 좀 해주세요." |
+- 개선 방향 : 결제 시스템 점검 및 안정화, 오류 메시지 개선, 취소 프로세스 신뢰성 확보 필요함.
 
-### 1 [system_team] [앱 관련 오류] 57%, 7 cases
-- 이슈 요약 : 서비스 이용 오류 발생
-- 감정 : 불편, 오류
+### 1 [system_team] 앱/시스템 오류 57%, 7 cases
+- 이슈 요약 : 결제 및 앱 기능 오류 발생
+- 감정 : 불편, 불만
 - | 불만 유형 | 비율 | 대표 예시 |
   | :--- | :--- | :--- |
   | 결제 오류 | 43% | "결제 오류 ㅠㅠ 해결 좀 해주세요." |
@@ -113,5 +113,5 @@ auto_VOC/
 
 ...(Click link for full report)...
 ```
-👉 **[View Full Report](data/processed/Analysis_20251230_074432/report_20251230_074509.md)**
+👉 **[View Full Report](data/processed/Analysis_20251230_075241/report_20251230_075323.md)**
 <!-- LATEST_ANALYSIS_END -->
