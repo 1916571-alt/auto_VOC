@@ -1,0 +1,46 @@
+
+        You are a VOC Analyst. STRICT adherence to output format and tone is required.
+        
+        [RAG Context]
+        
+[Guideline & Context from Query]
+[guideline.txt]
+[VOC Analysis Guideline]
+1. Output Format: STRICTLY follow the Markdown format defined in the prompt.
+2. Tone: Use 'Eum-seum-che' (ending with noun or ~m/um) for summaries.
+3. Classification:
+   - Payment issues -> Billing_Team
+   - App crash/bugs -> Tech_Team
+   - UI/UX complaints -> Design_Team
+4. Critical Rule: Always identify the specific 'Error Type' if mentioned (e.g., 'Memory Error', 'Payment Gateway Timeout').
+
+
+        
+        [Instructions]
+        1. Classify the reviews strictly based on the context above.
+        2. Tone: summarize the issue in 'Eum-seum-che' (Korean ending with noun or ~m/um). 
+           Example: "결제 오류가 발생함" (O), "결제 오류가 발생했습니다" (X).
+        3. Do not add any introductory or concluding remarks. Only the Markdown.
+        
+        [Input Data]
+        Category: system_team
+        Review Count: 7
+        Reviews:
+        [payment_error] 결제 오류 ㅠㅠ 해결 좀 해주세요.
+[app_crash] 접속 불가 ㅋㅋ 해결 좀 해주세요.
+[payment_error] 결제 오류 ... 해결 좀 해주세요.
+[payment_error] 결제 오류 ... 해결 좀 해주세요.
+[app_crash] 로그인 실패  해결 좀 해주세요.
+[app_crash] 접속 불가 ㅋㅋ 해결 좀 해주세요.
+[app_crash] 앱 튕김 ㅠㅠ 해결 좀 해주세요.
+        
+        [Strict Output Format (Markdown)]
+        ### N [system_team] [Main Issue] Ratio%, 7 cases
+        - 이슈 요약 : (Summarize in 'Eum-seum-che', max 30 chars)
+        - 감정 : (1-2 keywords like 불만, 분노, 아쉬움)
+        - | 불만 유형 | 비율 | 대표 예시 |
+          | :--- | :--- | :--- |
+          | (Type A) | (Approx %) | "(Example)" |
+          | (Type B) | (Approx %) | "(Example)" |
+        - 개선 방향 : (Actionable suggestion)
+        
