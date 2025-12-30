@@ -5,6 +5,7 @@ import datetime
 import time
 import json
 from dotenv import load_dotenv
+import google.generativeai as genai
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -34,9 +35,51 @@ class VOCAnalyzer:
             masked_key = f"{api_key[:3]}***{api_key[-3:]}" if len(api_key) > 6 else "***"
             print(f">> [INFO] API Key Loaded: {masked_key}")
             
+            # --- Auto-Model Detection Logic ---
+            selected_model = "gemini-1.5-flash" # Default fallback
+            try:
+                genai.configure(api_key=api_key)
+                available = []
+                print(">> [INFO] Checking available models...")
+                
+                for m in genai.list_models():
+                    if 'generateContent' in m.supported_generation_methods:
+                        # Strip 'models/' prefix for cleaner comparison/usage if needed by LangChain
+                        model_name = m.name.replace("models/", "")
+                        available.append(model_name)
+                
+                # Log available models
+                try:
+                    with open("data/logs/available_models.log", "w", encoding="utf-8") as f:
+                        f.write("\n".join(available))
+                    print(f">> [INFO] Available models logged to data/logs/available_models.log: {available}")
+                except Exception as e:
+                    print(f">> [WARNING] Failed to log available models: {e}")
+
+                # Priority: 1.5-flash -> 1.5-pro -> 1.0-pro (or others found)
+                # We prioritize flash for speed/cost, then pro for quality.
+                if "gemini-1.5-flash" in available:
+                    selected_model = "gemini-1.5-flash"
+                elif "gemini-1.5-pro" in available:
+                    selected_model = "gemini-1.5-pro"
+                elif "gemini-1.0-pro" in available:
+                    selected_model = "gemini-1.0-pro"
+                elif "gemini-pro" in available:
+                    selected_model = "gemini-pro"
+                else:
+                    # If none of the known ones match directly, take the first available message-capable model
+                    # But stick to default if list is empty for some reason to let LangChain try.
+                    if available:
+                        selected_model = available[0]
+                
+                print(f">> [INFO] Auto-Selected Model: {selected_model}")
+
+            except Exception as e:
+                print(f">> [WARNING] Model list failed ({e}). Defaulting to {selected_model}")
+
             try:
                 self.llm = ChatGoogleGenerativeAI(
-                    model="gemini-1.5-flash",
+                    model=selected_model,
                     temperature=0.0,
                     google_api_key=api_key
                 )

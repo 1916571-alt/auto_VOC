@@ -7,5 +7,6 @@ chromadb
 pandas
 scipy
 pyyaml
+google-generativeai
 tiktoken
 python-dotenv
