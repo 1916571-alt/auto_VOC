@@ -24,9 +24,10 @@ class VOCAnalyzer:
         self.mock_mode = False
 
         if not api_key:
-            print(">> [NOTICE] GOOGLE_API_KEY not found in environment variables. Switching to MOCK MODE.")
-            self.mock_mode = True
-            self.llm = None
+            # Strict Mode Enforcement
+            print(">> [CRITICAL] GOOGLE_API_KEY not found in environment variables.")
+            print(">> Please ensure .env file exists and contains GOOGLE_API_KEY.")
+            raise ValueError("API Key missing. Aborting Real-World Analysis.")
         else:
             # Masked Logging
             masked_key = f"{api_key[:3]}***{api_key[-3:]}" if len(api_key) > 6 else "***"
@@ -39,9 +40,8 @@ class VOCAnalyzer:
                     google_api_key=api_key
                 )
             except Exception as e:
-                 print(f">> [ERROR] Failed to initialize LLM: {e}. Switching to MOCK MODE.")
-                 self.mock_mode = True
-                 self.llm = None
+                 print(f">> [ERROR] Failed to initialize LLM: {e}.")
+                 raise e
 
     def _ensure_directories(self):
         """Creates necessary directories if they don't exist."""
