@@ -211,10 +211,10 @@ class VOCAnalyzer:
         self._save_result(full_report, f"report_{timestamp}.md")
         
         return full_report
-    
-    if __name__ == "__main__":
-        analyzer = VOCAnalyzer()
-        if os.path.exists("data/raw/mock_reviews.csv"):
-            analyzer.generate_full_report("data/raw/mock_reviews.csv")
-        else:
-            print("Mock data not found. Run generate_data.py first.")
+
+if __name__ == "__main__":
+    analyzer = VOCAnalyzer()
+    if os.path.exists("data/raw/mock_reviews.csv"):
+        analyzer.generate_full_report("data/raw/mock_reviews.csv")
+    else:
+        print("Mock data not found. Run generate_data.py first.")
