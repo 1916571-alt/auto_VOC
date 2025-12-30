@@ -1,0 +1,14 @@
+=== [Step 1: Raw Input] ===
+[payment_error] 결제 오류 ㅠㅠ 해결 좀 해주세요.
+[app_crash] 접속 불가 ㅋㅋ 해결 좀 해주세요.
+[payment_error] 결제 오류 ... 해결 좀 해주세요.
+[payment_error] 결제 오류 ... 해결 좀 해주세요.
+[app_crash] 로그인 실패  해결 좀 해주세요.
+[app_crash] 접속 불가 ㅋㅋ 해결 좀 해주세요.
+[app_crash] 앱 튕김 ㅠㅠ 해결 좀 해주세요.
+
+=== [Step 2: Constructed Prompt Used] ===
+(See 20251230_062622_system_team_prompt.txt for full content)
+
+=== [Step 3: AI Raw Response] ===
+Error during LLM execution: Error calling model 'gemini-1.5-flash' (NOT_FOUND): 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}
