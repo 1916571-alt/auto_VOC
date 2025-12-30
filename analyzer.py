@@ -346,17 +346,47 @@ class VOCAnalyzer:
         
 
         
-        return result
+        
+        # Construct Audit Trail
+        raw_reviews_preview = "\n".join([f"- {r}" for r in reviews_df['review_text'].head(5).tolist()])
+        
+        audit_section = f"""
+#### 🔍 Analysis Audit (검증 데이터)
+| 단계 | 내용 |
+| :--- | :--- |
+| **Raw Data** | {raw_reviews_preview} |
+| **RAG Context** | {rag_section[:200]}... (Refer to full docs) |
+| **Full Prompt** | <details><summary>View Prompt</summary>\n\n```text\n{formatted_prompt}\n```\n</details> |
+| **Raw Response** | <details><summary>View Response</summary>\n\n```text\n{result}\n```\n</details> |
+<hr>
+"""
+
+        # Combine Result with Audit
+        final_output = result + "\n\n" + audit_section
+
+        return final_output
 
     def _mock_analyze_group(self, category_name):
         """Returns a dummy analysis result for testing."""
-        return f"""### N [{category_name}] [Main Issue] Mock Analysis Result
+        mock_result = f"""### N [{category_name}] [Main Issue] Mock Analysis Result
 - 이슈 요약 : This is a mock summary for testing.
 - 감정 : Mock Emotion
 - | 불만 유형 | 비율 | 대표 예시 |
   | :--- | :--- | :--- |
   | Mock Type A | 50% | "Mock Example 1" |
 - 개선 방향 : Mock Action Item"""
+        
+        audit_section = f"""
+#### 🔍 Analysis Audit (검증 데이터)
+| 단계 | 내용 |
+| :--- | :--- |
+| **Raw Data** | - Mock Review 1\n- Mock Review 2 |
+| **RAG Context** | Mock Context... |
+| **Full Prompt** | <details><summary>View Prompt</summary>\n\n```text\n(Mock Prompt)\n```\n</details> |
+| **Raw Response** | <details><summary>View Response</summary>\n\n```text\n{mock_result}\n```\n</details> |
+<hr>
+"""
+        return mock_result + "\n\n" + audit_section
 
     def generate_full_report(self, csv_path):
         if not os.path.exists(csv_path):
@@ -397,19 +427,15 @@ class VOCAnalyzer:
         full_report = "\n\n".join(report_sections)
         
         # Merge Verification Trail (Unified Report)
+        # Note: Audit trail is now inline, so we just add the breakdown table
         unified_report = f"""
 {full_report}
 
 ---
-# 🔍 Verification Center (Detailed Logs)
-
-## 📝 Execution Stats
+# 📊 Execution Summary
 | Category | Status | Timestamp | Log Link |
 | :--- | :--- | :--- | :--- |
 {self._generate_stats_table()}
-
-## 🔍 Verification Trail (Input -> Prompt -> Output)
-{self._generate_verification_trail()}
 """
         
         # Save Result
