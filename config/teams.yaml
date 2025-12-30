@@ -1,0 +1,12 @@
+teams:
+  billing_team:
+    keywords: ["페이", "충전", "환불", "결제"]
+    webhook_url: "PLACEHOLDER_URL"
+  
+  system_team:
+    keywords: ["튕김", "종료", "접속", "로그인", "오류"]
+    webhook_url: "PLACEHOLDER_URL"
+
+  design_logistics_team:
+    keywords: ["디자인", "배송", "화면", "글씨"]
+    webhook_url: "PLACEHOLDER_URL"
