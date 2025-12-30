@@ -89,29 +89,29 @@ auto_VOC/
 
 
 <!-- LATEST_ANALYSIS_START -->
-### 🚀 Latest Analysis Result (2025-12-30 16:24)
-**Project:** `test_cleanup`
-**Model:** `mock-model`
+### 🚀 Latest Analysis Result (2025-12-30 07:28)
+**Project:** `Analysis_20251230_072801`
+**Model:** `gemini-2.5-flash`
 
 **Summary Preview:**
 ```markdown
-### N [billing_team] [Main Issue] Mock Analysis Result
-- 이슈 요약 : This is a mock summary for testing.
-- 감정 : Mock Emotion
+### 1 [billing_team] [결제 오류] 100%, 8 cases
+- 이슈 요약 : 결제 및 충전 오류, 취소 불가 문제
+- 감정 : 불만, 불편함
 - | 불만 유형 | 비율 | 대표 예시 |
   | :--- | :--- | :--- |
-  | Mock Type A | 50% | "Mock Example 1" |
-- 개선 방향 : Mock Action Item
+  | Payment_Error | 100% | "[payment_error] 페이 충전 실패 ! 해결 좀 해주세요." |
+- 개선 방향 : 결제 시스템 안정화 및 오류 해결 방안 마련
 
-### N [system_team] [Main Issue] Mock Analysis Result
-- 이슈 요약 : This is a mock summary for testing.
-- 감정 : Mock Emotion
+### N [system_team] [앱 구동 오류] 57%, 7 cases
+- 이슈 요약 : 앱 접속 및 구동 불안정 발생함.
+- 감정 : 불편, 오류
 - | 불만 유형 | 비율 | 대표 예시 |
   | :--- | :--- | :--- |
-  | Mock Type A | 50% | "Mock Example 1" |
-- 개선 방향 : Mock Action Item
+  | Tech_Team (앱 구동 오류) | 57% | "접속 불가 ㅋㅋ 해결 좀 해주세요." |
+  | Billing_Team (결제 오류) | 43% | "결제 오류 ㅠㅠ 해결 좀 해주세요." |
 
 ...(Click link for full report)...
 ```
-👉 **[View Full Report](data/processed/test_cleanup/report_20251230_162455.md)**
+👉 **[View Full Report](data/processed/Analysis_20251230_072801/report_20251230_072847.md)**
 <!-- LATEST_ANALYSIS_END -->
